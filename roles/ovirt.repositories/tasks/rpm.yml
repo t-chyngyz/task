@@ -1,4 +1,4 @@
 - name: Install the oVirt remote repository.
   yum:
-    name: http://resources.ovirt.org/pub/yum-repo/ovirt-release42.rpm
+    name: http://resources.ovirt.org/pub/yum-repo/ovirt-release43.rpm
     state: present
