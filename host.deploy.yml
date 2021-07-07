@@ -1,0 +1,118 @@
+---
+- name: oVirt-node repository install
+  hosts: ovirt-nodes
+  become:
+    true
+  become_method:
+    sudo
+  become_user:
+    root
+  remote_user:
+    user
+  roles:
+   - epel
+   - ovirt.repositories
+   - host-pre
+
+- name: oVirt infra
+  hosts: ovirt-server
+  connection: local
+  gather_facts: false
+
+  vars:
+     engine_fqdn: ovirt-server.example.com
+     engine_user: admin@internal
+     engine_password: 123456
+     engine_cafile: /etc/pki/ovirt-engine/ca.pem
+     data_center_name: Default
+     compatibility_version: 4.2
+
+     mac_pools:
+      - mac_pool_name: "Default"
+        mac_pool_ranges:
+          - "00:1a:4a:16:01:51,00:1a:4a:16:01:61"
+
+     clusters:
+      - name: Default
+        cpu_type: Intel Conroe Family
+        profile: production
+
+     hosts:
+      - name: ovirt-node.example.com
+        address: 10.5.3.4
+        cluster: Default
+        password: 12345678
+
+      - name: centos-node.example.com
+        address: 10.5.3.5
+        cluster: Default
+        password: 1
+
+     storages:
+      data:
+        master: true
+        state: present
+        localfs:
+          path: /localfs
+
+
+     logical_networks:
+       - name: mynetwork
+         clusters:
+           - name: Default
+             assigned: yes
+             required: no
+             display: no
+             migration: yes
+             gluster: no
+
+     host_networks:
+       - name: ovirt-node.example.com
+         check: true
+         save: true
+         interface: br0
+
+     user_groups:
+      - name: admins
+        authz_name: internal-authz
+        users:
+         - john.doe
+         - joe.doe
+
+     permissions:
+      - state: present
+        user_name: john.doe
+        authz_name: internal-authz
+        role: UserROle
+        object_type: cluster
+        object_name: production
+
+      - state: present
+        group_name: admins
+        authz_name: internal-authz
+        role: UserVmManager
+        object_type: cluster
+        object_name: production
+
+
+  pre_tasks:
+    - name: Login to oVirt
+      ovirt_auth:
+        hostname: "{{ engine_fqdn }}"
+        username: "{{ engine_user }}"
+        password: "{{ engine_password }}"
+        ca_file: "{{ engine_cafile | default(omit) }}"
+        insecure: "{{ engine_insecure | default(true) }}"
+      tags:
+        - always
+
+  roles:
+    - ovirt.infra
+
+  post_tasks:
+    - name: Logout from oVirt
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"
+      tags:
+        - always
