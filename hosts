@@ -1,0 +1,16 @@
+[ovirt-server]
+
+10.5.3.3
+
+[ovirt-node]
+
+10.5.3.4
+
+[centos-node]
+
+10.5.3.5
+
+[ovirt-nodes]
+
+10.5.3.4
+10.5.3.5
