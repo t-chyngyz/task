@@ -10,9 +10,7 @@
   remote_user:
     user
   roles:
-   - epel
    - ovirt.repositories
-   - host-pre
 
 - name: oVirt infra
   hosts: ovirt-server
